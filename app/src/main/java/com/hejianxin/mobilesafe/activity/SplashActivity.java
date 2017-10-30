@@ -1,9 +1,12 @@
 package com.hejianxin.mobilesafe.activity;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -15,9 +18,14 @@ import android.widget.Toast;
 import com.hejianxin.mobilesafe.R;
 import com.hejianxin.mobilesafe.utils.StreamUtil;
 import com.hejianxin.mobilesafe.utils.ToastUtil;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -53,13 +61,107 @@ public class SplashActivity extends AppCompatActivity {
             }
         }
     };
+    private String mVersionDes;
+    private String mdownloadUrl;
 
     /**
      * 弹出对话框提示更新
      */
     private void showUpdateDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.drawable.home_apps);
+        builder.setTitle("版本更新");
+        builder.setMessage(mVersionDes);
+        builder.setPositiveButton("立即更新", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //下载apk
+                downloadApk();
+
+            }
+        });
+        builder.setNegativeButton("稍后再说", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //取消进入主界面
+                enterHome();
+            }
+        });
+        //点击取消的事件
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                //取消进入主界面
+                enterHome();
+                dialogInterface.dismiss();
+            }
+        });
         builder.show();
+    }
+
+    private void downloadApk() {
+        //apk下载链接地址,放置APK的所在路径
+        //判断SD卡是否可用
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+            //获取SD卡路径
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "app.apk";
+            //发送请求获取apk并且放到指定路径
+            HttpUtils httpUtils = new HttpUtils();
+            httpUtils.download(mdownloadUrl, path, new RequestCallBack<File>() {
+                @Override
+                public void onSuccess(ResponseInfo<File> responseInfo) {
+                    //下载成功
+                    Log.i(tag,"下载成功");
+                    File file = responseInfo.result;
+                    //
+                    installApk(file);
+                }
+
+                @Override
+                public void onFailure(HttpException e, String s) {
+                    //下载失败
+                    Log.i(tag,"下载失败");
+                }
+                //刚刚开始下载
+                @Override
+                public void onStart() {
+                    super.onStart();
+                    Log.i(tag,"刚刚开始下载");
+                }
+                //下载过程中的方法
+
+                /**
+                 *
+                 * @param total 文件总大小
+                 * @param current  当前位置
+                 * @param isUploading  是否正在下载
+                 */
+                @Override
+                public void onLoading(long total, long current, boolean isUploading) {
+                    super.onLoading(total, current, isUploading);
+                }
+            });
+        }
+    }
+
+    /**
+     *
+     * @param file 安装的文件
+     */
+    public void installApk(File file){
+        Intent intent = new Intent("android.intent.action.VIEW");
+        intent.addCategory("android.intent.category.DEFAULT");
+        //文件作为数据源传递过去
+        intent.setDataAndType(Uri.fromFile(file),"application/vnd.android.package-archive");
+        //startActivity(intent);
+
+        startActivityForResult(intent,0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        enterHome();
     }
 
     /**
@@ -129,9 +231,9 @@ public class SplashActivity extends AppCompatActivity {
                         //解析JSON
                         JSONObject jsonObject = new JSONObject(json);
                         String versionName = jsonObject.getString("versionName");
-                        String versionDes = jsonObject.getString("versionDes");
+                        mVersionDes = jsonObject.getString("versionDes");
                         String versionCode = jsonObject.getString("versionCode");
-                        String downloadUrl = jsonObject.getString("downloadUrl");
+                        mdownloadUrl = jsonObject.getString("downloadUrl");
                         //对比版本号
                         if(mLocalVersionCode < Integer.parseInt(versionCode)){
                             //弹出对话框，这里是子线程，要用消息机制
