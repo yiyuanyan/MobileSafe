@@ -12,6 +12,10 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,7 +53,8 @@ public class SplashActivity extends AppCompatActivity {
             super.handleMessage(msg);
             switch (msg.what){
                 case UPDATE_VERSION:
-                    showUpdateDialog();
+                    enterHome();
+                    //showUpdateDialog();
                     //ToastUtil.show(SplashActivity.this,"可以更新了");
                     break;
                 case ENTER_HOME:
@@ -63,6 +68,7 @@ public class SplashActivity extends AppCompatActivity {
     };
     private String mVersionDes;
     private String mdownloadUrl;
+    private RelativeLayout rlv_root;
 
     /**
      * 弹出对话框提示更新
@@ -184,7 +190,15 @@ public class SplashActivity extends AppCompatActivity {
         initUI();
         //初始化数据
         initData();
+        //初始化动画
+        initAnimation();
 
+    }
+
+    private void initAnimation() {
+        AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1);
+        alphaAnimation.setDuration(3000);
+        rlv_root.startAnimation(alphaAnimation);
     }
 
     /**
@@ -303,5 +317,6 @@ public class SplashActivity extends AppCompatActivity {
      */
     private void initUI() {
         tv_version_name = (TextView) findViewById(R.id.tv_version_name);
+        rlv_root = (RelativeLayout)findViewById(R.id.rlv_root);
     }
 }

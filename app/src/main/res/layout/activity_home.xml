@@ -1,11 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+    <!-- 抽取到自定义样式中 styles.xml -->
     <TextView
-        android:text="HomeActivity"
-        android:textSize="24sp"
+        android:text="功能列表"
+        style="@style/TitleStyle"
+        />
+    <!--  滚动文字 必须设置如下
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"  持续循环滚动
+    <TextView
+        android:text="2018款雪佛兰创酷上市：9.99万起 尾标变了!意大利零售店提前激活iPhone X：竟被苹果封死了!"
         android:textColor="#000"
-        android:layout_width="wrap_content"
+        android:singleLine="true"
+        android:padding="5dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" /-->
+    <!--  自定义控件实现持续滚动效果  -->
+    <com.hejianxin.mobilesafe.view.FocusTextView
+        android:text="2018款雪佛兰创酷上市：9.99万起 尾标变了!意大利零售店提前激活iPhone X：竟被苹果封死了!"
+        android:textColor="#000"
+        android:singleLine="true"
+        android:padding="5dp"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+    <!--
+     android:numColumns="3" 列数
+     android:verticalSpacing="10dp"   指定内部item竖向间距
+     -->
+    <GridView
+        android:id="@+id/gv_home"
+        android:numColumns="3"
+        android:verticalSpacing="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </GridView>
 </LinearLayout>
